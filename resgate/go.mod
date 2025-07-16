@@ -1,4 +1,4 @@
-module github.com/lamlv2305/sentinel/packages/resgate
+module github.com/lamlv2305/sentinel/resgate
 
 go 1.23.3
 
