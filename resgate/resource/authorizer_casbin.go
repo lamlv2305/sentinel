@@ -95,7 +95,7 @@ func (c *CasbinAuthorizer) removePoliciesForResource(userId, resource string) er
 			continue
 		}
 
-		policyInterface := make([]interface{}, len(policy))
+		policyInterface := make([]any, len(policy))
 		for i, v := range policy {
 			policyInterface[i] = v
 		}
@@ -120,7 +120,7 @@ func (c *CasbinAuthorizer) removeProjectPolicies(userId, projectId string) error
 			continue
 		}
 
-		policyInterface := make([]interface{}, len(policy))
+		policyInterface := make([]any, len(policy))
 		for i, v := range policy {
 			policyInterface[i] = v
 		}
