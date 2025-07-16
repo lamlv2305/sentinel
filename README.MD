@@ -10,8 +10,22 @@ A Go library for interacting with [Resgate](./resgate) servers, providing cachin
 
 **Features:**
 - Cache management with file-based storage
-- Real-time sync
+- Real-time sync via Server-Sent Events
 - Resource change subscriptions
+- Resgate protocol compatibility
+
+**Progress Checklist:**
+- [ ] Core interfaces definition (Cache, Client, Adapter)
+- [ ] File-based cache implementation
+- [ ] HTTP client for Resgate API
+- [ ] SSE adapter for real-time updates
+- [ ] Subscription management system
+- [ ] Observer pattern implementation
+- [ ] Configuration and options
+- [ ] Error handling and reconnection logic
+- [ ] Unit tests
+- [ ] Integration tests with Resgate
+- [ ] Documentation and examples
 
 **Usage:**
 ```go
@@ -30,6 +44,16 @@ Real-time API Gateway that enables real-time web APIs using the RES protocol.
 - Resource-based API structure (RID patterns)
 - Event-driven data synchronization
 - Client subscription management
+
+**Progress Checklist:**
+- [x] Basic project structure
+- [x] HTTP client implementation
+- [x] NATS adapter integration
+- [x] SSE adapter for real-time events
+- [x] Authorization with Casbin
+- [x] File-based resource persistence
+- [ ] Performance benchmarks
+- [ ] Load testing scenarios
 
 
 ## Getting Started
