@@ -1,4 +1,4 @@
-package resgate
+package resource
 
 import (
 	"context"
@@ -9,27 +9,13 @@ import (
 	"strings"
 )
 
-type ResourceQuery struct {
-	ProjectId  string `json:"project_id"`
-	Group      string `json:"group,omitempty"`
-	ResourceId string `json:"resource_id,omitempty"`
-}
-
-type ResourcePersister interface {
-	Save(ctx context.Context, resource Resource) error
-	Delete(ctx context.Context, query ResourceQuery) error
-	Get(ctx context.Context, resourceId string) (Resource, error)
-	GetByQuery(ctx context.Context, query ResourceQuery) (Resource, error) // New method
-	List(ctx context.Context, query ResourceQuery) ([]Resource, error)
-}
-
-var _ ResourcePersister = &FilePersister{}
+var _ Persister = &FilePersister{}
 
 type FilePersister struct {
 	path string
 }
 
-func NewFilePersister(path string) ResourcePersister {
+func NewFilePersister(path string) Persister {
 	// Ensure the directory exists
 	if err := os.MkdirAll(path, 0o755); err != nil {
 		panic(fmt.Sprintf("failed to create directory %s: %v", path, err))

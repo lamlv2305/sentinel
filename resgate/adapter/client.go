@@ -1,4 +1,4 @@
-package resgate
+package adapter
 
 import (
 	"context"
@@ -10,10 +10,9 @@ type Client struct {
 	Id        string
 	ProjectId string
 
-	ch       chan string
-	done     chan struct{}
-	mu       sync.RWMutex
-	lastSeen time.Time
+	ch   chan string
+	done chan struct{}
+	mu   sync.Mutex
 }
 
 func NewClient(id, projectId string) *Client {
@@ -22,7 +21,6 @@ func NewClient(id, projectId string) *Client {
 		ProjectId: projectId,
 		ch:        make(chan string, 100), // Larger buffer to handle bursts
 		done:      make(chan struct{}),
-		lastSeen:  time.Now(),
 	}
 }
 
@@ -41,20 +39,6 @@ func (c *Client) Close() {
 	}
 }
 
-// UpdateLastSeen updates the last seen timestamp
-func (c *Client) UpdateLastSeen() {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	c.lastSeen = time.Now()
-}
-
-// GetLastSeen returns the last seen timestamp
-func (c *Client) GetLastSeen() time.Time {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
-	return c.lastSeen
-}
-
 // IsConnected checks if the client is still connected
 func (c *Client) IsConnected() bool {
 	select {
@@ -63,6 +47,11 @@ func (c *Client) IsConnected() bool {
 	default:
 		return true
 	}
+}
+
+// GetChannel returns the client's message channel for reading
+func (c *Client) GetChannel() <-chan string {
+	return c.ch
 }
 
 // SendWithTimeout sends a message with a timeout
@@ -75,11 +64,12 @@ func (c *Client) SendWithTimeout(message string, timeout time.Duration) error {
 	defer cancel()
 
 	select {
-	case c.ch <- message:
-		c.UpdateLastSeen()
-		return nil
 	case <-ctx.Done():
 		return ctx.Err()
+
+	case c.ch <- message:
+		return nil
+
 	case <-c.done:
 		return context.Canceled
 	}
