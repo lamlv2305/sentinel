@@ -2,6 +2,8 @@ package resource
 
 import (
 	"context"
+
+	"github.com/lamlv2305/sentinel/types"
 )
 
 type ResourceQuery struct {
@@ -11,9 +13,9 @@ type ResourceQuery struct {
 }
 
 type Persister interface {
-	Save(ctx context.Context, resource Resource) error
+	Save(ctx context.Context, resource types.Resource) error
 	Delete(ctx context.Context, query ResourceQuery) error
-	Get(ctx context.Context, resourceId string) (Resource, error)
-	GetByQuery(ctx context.Context, query ResourceQuery) (Resource, error) // New method
-	List(ctx context.Context, query ResourceQuery) ([]Resource, error)
+	Get(ctx context.Context, resourceId string) (types.Resource, error)
+	GetByQuery(ctx context.Context, query ResourceQuery) (types.Resource, error) // New method
+	List(ctx context.Context, query ResourceQuery) ([]types.Resource, error)
 }

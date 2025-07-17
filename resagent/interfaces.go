@@ -1,22 +1,20 @@
 package resagent
 
-import "context"
+import (
+	"context"
+
+	"github.com/lamlv2305/sentinel/types"
+)
 
 // Cache interface for storing and retrieving resources
 type Cache interface {
-	Get(rid string) (any, bool)
-	Set(rid string, data any)
-	Delete(rid string)
-	List() []any
-	Clear()
-}
-
-// Client interface for fetching resources from resgate
-type Client interface {
-	Get(rid string) (any, error)
+	Get(ctx context.Context, rid string) *types.Resource
+	Set(ctx context.Context, data types.Resource) error
+	Delete(ctx context.Context, rid string)
+	List(ctx context.Context) []types.Resource
 }
 
 // Adapter interface for receiving real-time updates
 type Adapter interface {
-	Connect(ctx context.Context, handler func(rid string, data any)) error
+	Connect(ctx context.Context, handler func(ctx context.Context, data types.Resource)) error
 }

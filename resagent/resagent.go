@@ -2,6 +2,8 @@ package resagent
 
 import (
 	"context"
+
+	"github.com/lamlv2305/sentinel/types"
 )
 
 // ResAgent represents the main agent for interacting with resgate
@@ -43,7 +45,7 @@ func (ra *ResAgent) Run(ctx context.Context) error {
 }
 
 // handleDataChange processes incoming data changes from resgate
-func (ra *ResAgent) handleDataChange(rid string, data any) {
+func (ra *ResAgent) handleDataChange(ctx context.Context, data types.Resource) {
 	// Update cache
-	ra.cache.Set(rid, data)
+	ra.cache.Set(ctx, data)
 }

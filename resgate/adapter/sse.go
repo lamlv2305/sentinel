@@ -9,7 +9,7 @@ import (
 
 	"github.com/goccy/go-json"
 	"github.com/google/uuid"
-	"github.com/lamlv2305/sentinel/resgate/resource"
+	"github.com/lamlv2305/sentinel/types"
 )
 
 var _ Adapter = &SSE{}
@@ -57,7 +57,7 @@ func (s *SSE) Credential(ctx context.Context, apikey string, project string) err
 }
 
 // OnChanged implements Adapter.
-func (s *SSE) OnChanged(ctx context.Context, event resource.ChangedEvent) error {
+func (s *SSE) OnChanged(ctx context.Context, event types.ChangedEvent) error {
 	data, err := json.Marshal(event)
 	if err != nil {
 		return err

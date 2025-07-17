@@ -15,6 +15,7 @@ import (
 	"github.com/lamlv2305/sentinel/resgate"
 	"github.com/lamlv2305/sentinel/resgate/adapter"
 	"github.com/lamlv2305/sentinel/resgate/resource"
+	"github.com/lamlv2305/sentinel/types"
 )
 
 func main() {
@@ -133,15 +134,15 @@ func generateSampleEvents(ctx context.Context, adapter *adapter.SSE, logger *slo
 
 	projectIds := []string{"project-alpha", "project-beta", "project-gamma"}
 	groups := []string{"users", "documents", "settings", "notifications"}
-	resourceTypes := []resource.ResourceType{
-		resource.ResourceTypeText,
-		resource.ResourceTypeJsonObject,
-		resource.ResourceTypeJsonArray,
+	resourceTypes := []types.ResourceType{
+		types.ResourceTypeText,
+		types.ResourceTypeJsonObject,
+		types.ResourceTypeJsonArray,
 	}
-	actionTypes := []resource.ActionType{
-		resource.ActionTypeCreate,
-		resource.ActionTypeUpdate,
-		resource.ActionTypeDelete,
+	actionTypes := []types.ActionType{
+		types.ActionTypeCreate,
+		types.ActionTypeUpdate,
+		types.ActionTypeDelete,
 	}
 
 	eventCount := 0
@@ -160,10 +161,10 @@ func generateSampleEvents(ctx context.Context, adapter *adapter.SSE, logger *slo
 			resourceType := resourceTypes[rand.Intn(len(resourceTypes))]
 			action := actionTypes[rand.Intn(len(actionTypes))]
 
-			event := resource.ChangedEvent{
+			event := types.ChangedEvent{
 				Action:    action,
 				Timestamp: time.Now(),
-				Resource: resource.Resource{
+				Resource: types.Resource{
 					ResourceId:   fmt.Sprintf("resource-%d", eventCount),
 					ProjectId:    projectId,
 					Group:        group,
@@ -189,13 +190,13 @@ func generateSampleEvents(ctx context.Context, adapter *adapter.SSE, logger *slo
 }
 
 // generateSampleData creates sample data based on resource type
-func generateSampleData(resourceType resource.ResourceType, eventCount int) []byte {
+func generateSampleData(resourceType types.ResourceType, eventCount int) []byte {
 	switch resourceType {
-	case resource.ResourceTypeText:
+	case types.ResourceTypeText:
 		return []byte(fmt.Sprintf("Sample text data for event %d - %s",
 			eventCount, time.Now().Format("15:04:05")))
 
-	case resource.ResourceTypeJsonObject:
+	case types.ResourceTypeJsonObject:
 		return []byte(fmt.Sprintf(`{
 			"eventId": %d,
 			"timestamp": "%s",
@@ -207,7 +208,7 @@ func generateSampleData(resourceType resource.ResourceType, eventCount int) []by
 			}
 		}`, eventCount, time.Now().Format(time.RFC3339), rand.Intn(1000)))
 
-	case resource.ResourceTypeJsonArray:
+	case types.ResourceTypeJsonArray:
 		return []byte(fmt.Sprintf(`[
 			{"id": %d, "name": "Item %d", "active": true},
 			{"id": %d, "name": "Item %d", "active": false},

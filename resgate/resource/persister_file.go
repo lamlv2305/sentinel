@@ -7,6 +7,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/lamlv2305/sentinel/types"
 )
 
 var _ Persister = &FilePersister{}
@@ -76,8 +78,8 @@ func (f *FilePersister) cleanupEmptyDirs(query ResourceQuery) {
 }
 
 // Get implements ResourcePersister.
-func (f *FilePersister) Get(ctx context.Context, resourceId string) (Resource, error) {
-	var found Resource
+func (f *FilePersister) Get(ctx context.Context, resourceId string) (types.Resource, error) {
+	var found types.Resource
 
 	err := filepath.Walk(f.path, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -110,16 +112,16 @@ func (f *FilePersister) Get(ctx context.Context, resourceId string) (Resource, e
 	}
 
 	if err != nil {
-		return Resource{}, fmt.Errorf("error searching for resource: %w", err)
+		return types.Resource{}, fmt.Errorf("error searching for resource: %w", err)
 	}
 
-	return Resource{}, fmt.Errorf("resource with id '%s' not found", resourceId)
+	return types.Resource{}, fmt.Errorf("resource with id '%s' not found", resourceId)
 }
 
 // GetByQuery gets a single resource using a ResourceQuery (more efficient than Get)
-func (f *FilePersister) GetByQuery(ctx context.Context, query ResourceQuery) (Resource, error) {
+func (f *FilePersister) GetByQuery(ctx context.Context, query ResourceQuery) (types.Resource, error) {
 	if query.ProjectId == "" || query.ResourceId == "" {
-		return Resource{}, fmt.Errorf("projectId and resourceId are required")
+		return types.Resource{}, fmt.Errorf("projectId and resourceId are required")
 	}
 
 	resourcePath := f.buildResourcePath(query.ProjectId, query.Group, query.ResourceId)
@@ -134,11 +136,11 @@ func (f *FilePersister) buildResourcePath(projectId, group, resourceId string) s
 }
 
 // List implements ResourcePersister.
-func (f *FilePersister) List(ctx context.Context, query ResourceQuery) ([]Resource, error) {
+func (f *FilePersister) List(ctx context.Context, query ResourceQuery) ([]types.Resource, error) {
 	searchPath := f.buildSearchPath(query)
 
 	if _, err := os.Stat(searchPath); os.IsNotExist(err) {
-		return []Resource{}, nil
+		return []types.Resource{}, nil
 	}
 
 	if query.ResourceId != "" {
@@ -156,20 +158,20 @@ func (f *FilePersister) buildSearchPath(query ResourceQuery) string {
 	return filepath.Join(projectDir, query.Group)
 }
 
-func (f *FilePersister) listSingleResource(searchPath, resourceId string) ([]Resource, error) {
+func (f *FilePersister) listSingleResource(searchPath, resourceId string) ([]types.Resource, error) {
 	resourcePath := filepath.Join(searchPath, resourceId+".json")
 	resource, err := f.loadResourceFromFile(resourcePath)
 	if os.IsNotExist(err) {
-		return []Resource{}, nil
+		return []types.Resource{}, nil
 	}
 	if err != nil {
 		return nil, err
 	}
-	return []Resource{resource}, nil
+	return []types.Resource{resource}, nil
 }
 
-func (f *FilePersister) listAllResources(searchPath string) ([]Resource, error) {
-	var resources []Resource
+func (f *FilePersister) listAllResources(searchPath string) ([]types.Resource, error) {
+	var resources []types.Resource
 
 	err := filepath.Walk(searchPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -197,7 +199,7 @@ func (f *FilePersister) listAllResources(searchPath string) ([]Resource, error) 
 }
 
 // Save implements ResourcePersister.
-func (f *FilePersister) Save(ctx context.Context, resource Resource) error {
+func (f *FilePersister) Save(ctx context.Context, resource types.Resource) error {
 	resourcePath := f.buildResourcePath(resource.ProjectId, resource.Group, resource.ResourceId)
 
 	if err := os.MkdirAll(filepath.Dir(resourcePath), 0o755); err != nil {
@@ -217,15 +219,15 @@ func (f *FilePersister) Save(ctx context.Context, resource Resource) error {
 }
 
 // loadResourceFromFile loads a resource from a JSON file
-func (f *FilePersister) loadResourceFromFile(filePath string) (Resource, error) {
+func (f *FilePersister) loadResourceFromFile(filePath string) (types.Resource, error) {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
-		return Resource{}, err
+		return types.Resource{}, err
 	}
 
-	var resource Resource
+	var resource types.Resource
 	if err := json.Unmarshal(data, &resource); err != nil {
-		return Resource{}, fmt.Errorf("failed to unmarshal resource from %s: %w", filePath, err)
+		return types.Resource{}, fmt.Errorf("failed to unmarshal resource from %s: %w", filePath, err)
 	}
 
 	return resource, nil
