@@ -6,7 +6,7 @@ require (
 	github.com/casbin/casbin/v2 v2.109.0
 	github.com/goccy/go-json v0.10.5
 	github.com/google/uuid v1.6.0
-	github.com/lamlv2305/sentinel/types v0.0.0-00010101000000-000000000000
+	github.com/lamlv2305/sentinel/types v0.1.1
 )
 
 require (
