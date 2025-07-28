@@ -1,8 +1,9 @@
-package adapter
+package operator
 
 import (
 	"context"
 	"encoding/base64"
+	"errors"
 	"log/slog"
 	"net/http"
 	"time"
@@ -14,21 +15,52 @@ import (
 
 var _ Adapter = &SSE{}
 
-type CredentialDelegator func(ctx context.Context, apikey string, project string) error
+type WithSSE func(*SSE)
 
-type SSE struct {
-	mux       *http.ServeMux
-	endpoint  string
-	hub       *hub
-	delegator CredentialDelegator
+func WithSSECredentialVerifier(cv CredentialVerifier) WithSSE {
+	return func(s *SSE) {
+		s.cv = cv
+	}
 }
 
-func NewSSE(mux *http.ServeMux, endpoint string, delegator CredentialDelegator) *SSE {
+func WithOnConnectedHook(hook func(ctx context.Context, client *Client)) WithSSE {
+	return func(s *SSE) {
+		s.hook.OnConnected = append(s.hook.OnConnected, hook)
+	}
+}
+
+func WithOnDisconnectedHook(hook func(ctx context.Context, client *Client)) WithSSE {
+	return func(s *SSE) {
+		s.hook.OnDisconnected = append(s.hook.OnDisconnected, hook)
+	}
+}
+
+type SSE struct {
+	mux      *http.ServeMux
+	endpoint string
+	hub      *hub
+	cv       CredentialVerifier
+	hook     Hook
+}
+
+func NewSSE(mux *http.ServeMux, endpoint string, opts ...WithSSE) *SSE {
 	ins := &SSE{
-		mux:       mux,
-		endpoint:  endpoint,
-		hub:       defaultHub(),
-		delegator: delegator,
+		mux:      mux,
+		endpoint: endpoint,
+		hub:      defaultHub(),
+		cv:       nil,
+		hook:     Hook{},
+	}
+
+	for _, opt := range opts {
+		opt(ins)
+	}
+
+	if ins.cv == nil {
+		ins.cv = func(ctx context.Context, apikey string, project string) error {
+			slog.Error("Credential verifier not set")
+			return errors.New("credential verifier not set")
+		}
 	}
 
 	return ins
@@ -51,13 +83,8 @@ func (s *SSE) Run(ctx context.Context) error {
 	}
 }
 
-// Credential implements Adapter.
-func (s *SSE) Credential(ctx context.Context, apikey string, project string) error {
-	return s.delegator(ctx, apikey, project)
-}
-
 // OnChanged implements Adapter.
-func (s *SSE) OnChanged(ctx context.Context, event types.ChangedEvent) error {
+func (s *SSE) Broadcast(ctx context.Context, event types.ChangedEvent) error {
 	data, err := json.Marshal(event)
 	if err != nil {
 		return err
@@ -79,7 +106,8 @@ func (s *SSE) OnConnected(w http.ResponseWriter, r *http.Request) {
 	// Validate credentials
 	apikey := r.URL.Query().Get("apikey")
 	project := r.URL.Query().Get("project")
-	if err := s.Credential(r.Context(), apikey, project); err != nil {
+
+	if err := s.cv(r.Context(), apikey, project); err != nil {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}

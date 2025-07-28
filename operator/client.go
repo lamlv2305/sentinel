@@ -1,4 +1,4 @@
-package adapter
+package operator
 
 import (
 	"context"
@@ -50,7 +50,7 @@ func (c *Client) IsConnected() bool {
 }
 
 // GetChannel returns the client's message channel for reading
-func (c *Client) GetChannel() <-chan string {
+func (c *Client) GetChannel() chan string {
 	return c.ch
 }
 

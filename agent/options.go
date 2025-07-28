@@ -1,14 +1,19 @@
-package resagent
+package agent
 
-import "time"
+import (
+	"time"
+
+	"github.com/lamlv2305/sentinel/persister"
+	"github.com/lamlv2305/sentinel/types"
+)
 
 // Options holds configuration for Resagent
 type Options struct {
-	resgateURL     string
 	timeout        time.Duration
 	reconnectDelay time.Duration
-	cache          Cache
+	persister      persister.Persister[types.Resource]
 	adapter        Adapter
+	subscriber     chan types.Resource // Channel for receiving updates
 }
 
 // Option is a function that configures Options
@@ -17,18 +22,11 @@ type Option func(*Options)
 // defaultOptions returns default configuration
 func defaultOptions() *Options {
 	return &Options{
-		resgateURL:     "http://localhost:8080",
 		timeout:        30 * time.Second,
 		reconnectDelay: 5 * time.Second,
-		cache:          nil, // Will be set later
-		adapter:        nil, // Will be set later
-	}
-}
-
-// WithResgateURL sets the Resgate URL
-func WithResgateURL(url string) Option {
-	return func(o *Options) {
-		o.resgateURL = url
+		persister:      nil,                          // Will be set later
+		adapter:        nil,                          // Will be set later
+		subscriber:     make(chan types.Resource, 1), // Buffered channel for updates
 	}
 }
 
@@ -46,10 +44,10 @@ func WithReconnectDelay(delay time.Duration) Option {
 	}
 }
 
-// WithCache sets the cache implementation
-func WithCache(cache Cache) Option {
+// WithPersister sets the cache implementation
+func WithPersister(cache persister.Persister[types.Resource]) Option {
 	return func(o *Options) {
-		o.cache = cache
+		o.persister = cache
 	}
 }
 
@@ -57,5 +55,11 @@ func WithCache(cache Cache) Option {
 func WithAdapter(adapter Adapter) Option {
 	return func(o *Options) {
 		o.adapter = adapter
+	}
+}
+
+func WithSubscriber(subscriber chan types.Resource) Option {
+	return func(o *Options) {
+		o.subscriber = subscriber
 	}
 }

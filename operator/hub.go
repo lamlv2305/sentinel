@@ -1,4 +1,4 @@
-package adapter
+package operator
 
 import (
 	"log/slog"
